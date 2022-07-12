@@ -1,0 +1,12 @@
+Metadata-Version: 1.1
+Name: rpmpatch
+Version: 0.0.2
+Summary: Tools for automatically customizing a source rpm
+Home-page: http://fermilinux.fnal.gov
+Author: Pat Riehecky
+Author-email: riehecky@fnal.gov
+License: LICENSE.txt
+Description:
+        Tools for making rpm customizations consistant as a program will be
+        performing the edits automatically based on a defined set of parameters.
+Platform: UNKNOWN
