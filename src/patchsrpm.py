@@ -1,5 +1,6 @@
-#!/usr/bin/env python
-#pylint: disable=line-too-long
+#!/usr/bin/env python3
+# pylint: disable=line-too-long
+
 '''
     This is a simple script where it all comes together.
     You can make you own if you want but this one is rather simple
@@ -7,18 +8,18 @@
 
 import os
 import sys
+import optparse
+import rpm
 
 # make it easier to test this from the source archive
-parent, bindir = os.path.split(os.path.dirname(os.path.abspath(sys.argv[0])))
-if os.path.exists(os.path.join(parent, 'rpmpatch')):
-    sys.path.insert(0, parent)
+#parent, bindir = os.path.split(os.path.dirname(os.path.abspath(sys.argv[0])))
+#if os.path.exists(os.path.join(parent, 'rpmpatch')):
+#    sys.path.insert(0, parent)
 
-from rpmpatch.helpers import parsesrpms
+from helpers import parsesrpms
 
 if __name__ == "__main__":
 
-    import optparse
-    import rpm
 
     # don't fix epilog white space, useful for manual formating control
     optparse.OptionParser.format_epilog = lambda self, formatter: self.epilog
@@ -256,21 +257,20 @@ changelog = I changed everything to L for some reason
     (OPTIONS, ARGS) = PARSER.parse_args()
 
     if OPTIONS.sampleconfig:
-        print SAMPLE_CONFIG
+        print(SAMPLE_CONFIG)
         sys.exit(1)
 
     if not os.path.isdir(os.path.expanduser(OPTIONS.configdir)):
         PARSER.print_help()
-        print ''
+        print('')
         raise IOError('No such directory: ' + OPTIONS.configdir)
 
     if len(ARGS) < 1:
         PARSER.print_help()
-        print >> sys.stderr, '\nMissing srpm(s), see help'
+        print('\nMissing srpm(s), see help', file=sys.stderr)
 
     for THEFILE in ARGS:
         if not os.path.isfile(THEFILE):
             raise IOError('No such file: ' + THEFILE)
 
     parsesrpms(os.path.expanduser(OPTIONS.configdir), ARGS, OPTIONS.changelog_user, OPTIONS.verbose)
-

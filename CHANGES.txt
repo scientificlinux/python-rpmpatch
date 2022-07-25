@@ -1,2 +1,0 @@
-v0.0.1, Jan 14 2013 -- Initial release.
-v0.0.2, Jan 14 2013 -- Now supports python 2.4
