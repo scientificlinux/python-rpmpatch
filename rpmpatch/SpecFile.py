@@ -65,7 +65,7 @@ class SpecFile(object):
 
         defines = []
         if isinstance(define_dict, dict):
-            for key in define_dict.keys():
+            for key in list(define_dict.keys()):
                 defines.append('--define')
                 defines.append(key + ' ' + define_dict[key])
 
@@ -83,7 +83,7 @@ class SpecFile(object):
         tmpstdout.seek(0)
 
         if code != 0:
-            print tmpstderr.read()
+            print(tmpstderr.read())
             raise RuntimeError(' '.join(buildsrc))
 
         matches = re.findall(r'Wrote:\s(\S+.src.rpm)\n', tmpstdout.read())
@@ -117,7 +117,7 @@ class SpecFile(object):
                 tmpstdout.seek(0)
 
                 if code != 0:
-                    print tmpstderr.read()
+                    print(tmpstderr.read())
                     raise RuntimeError(' '.join(buildbinary))
 
                 matches = re.findall(r'Wrote:\s(\S+.rpm)\n', tmpstdout.read())
@@ -136,7 +136,7 @@ class SpecFile(object):
         query_string = ['rpm', '-q', '--qf', "'%{n}-%{v}-%{r}.src.rpm\\n'"]
 
         if isinstance(define_dict, dict):
-            for key in define_dict.keys():
+            for key in list(define_dict.keys()):
                 query_string.append('--define')
                 query_string.append(key + ' ' + define_dict[key])
 
@@ -155,7 +155,7 @@ class SpecFile(object):
         tmpstdout.seek(0)
 
         if code != 0:
-            print tmpstderr.read()
+            print(tmpstderr.read())
             raise RuntimeError(' '.join(query_string))
 
         matches = re.findall(r'(\S+.src.rpm)\n', tmpstdout.read())
@@ -421,7 +421,7 @@ class SpecFile(object):
             return
         now = datetime.datetime.now().strftime('%a %b %d %Y ')
         changelog_text = '%changelog\n* ' + now + self.changelog_user + '\n'
-        for action in self.changelog.keys():
+        for action in list(self.changelog.keys()):
             changelog_text = changelog_text + '- ' + action + '\n'
             changelog_text = changelog_text + '-->  ' + self.changelog[action]
             changelog_text = changelog_text + '\n'

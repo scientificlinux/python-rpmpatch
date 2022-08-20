@@ -5,7 +5,7 @@
     You can make you own if you want but this one is rather simple
 '''
 
-import ConfigParser
+import configparser
 import difflib
 import os
 import re
@@ -37,7 +37,7 @@ def rpmpatch(configdir, srpm, changelog_user, verbose=False):
         else:
             cfgfilename = configdir + '/' + name + '/' + name + '.ini'
 
-    config = ConfigParser.SafeConfigParser()
+    config = configparser.SafeConfigParser()
     config.read(cfgfilename)
 
     configdir = os.path.abspath(os.path.dirname(cfgfilename))
@@ -50,23 +50,23 @@ def rpmpatch(configdir, srpm, changelog_user, verbose=False):
             cfg_file[section.lower()][entry] = value
 
     # empty is ok, but we do need these
-    if not cfg_file.has_key('program'):
+    if 'program' not in cfg_file:
         cfg_file['program'] = {}
-    if not cfg_file.has_key('autodist'):
+    if 'autodist' not in cfg_file:
         cfg_file['autodist'] = {}
-    if not cfg_file.has_key('define'):
+    if 'define' not in cfg_file:
         cfg_file['define'] = []
 
     # need changelog user or else
     if changelog_user == None:
-        if cfg_file['program'].has_key('changelog_user'):
+        if 'changelog_user' in cfg_file['program']:
             changelog_user = cfg_file['program']['changelog_user']
         else:
-            print >> sys.stderr, '\nMissing changelog user, see --help or config file'
+            print('\nMissing changelog user, see --help or config file', file=sys.stderr)
             sys.exit(1)
 
     if verbose:
-        print '# working on ' + srpm
+        print('# working on ' + srpm)
 
     # don't bother installing until we have a config file
     package.install()
@@ -105,7 +105,7 @@ def rpmpatch(configdir, srpm, changelog_user, verbose=False):
         cfg_file['autodist']['autodist_re_replace'] = None
 
     # get into sorted order
-    sections = cfg_file.keys()
+    sections = list(cfg_file.keys())
     sections.sort()
 
     if cfg_file['autodist']['enable_autodist']:
@@ -123,7 +123,7 @@ def rpmpatch(configdir, srpm, changelog_user, verbose=False):
             if result == NotImplemented:
                 not_applicable.append(cfg_file[section]['diff'])
             elif verbose:
-                print '## applied ' + cfg_file[section]['diff']
+                print('## applied ' + cfg_file[section]['diff'])
 
     # do all regex work
     for section in sections:
@@ -132,7 +132,7 @@ def rpmpatch(configdir, srpm, changelog_user, verbose=False):
             if result == NotImplemented:
                 pass
             elif verbose:
-                print '## ran regex ' + cfg_file[section]['match'] + '=>' + cfg_file[section]['replace']
+                print('## ran regex ' + cfg_file[section]['match'] + '=>' + cfg_file[section]['replace'])
 
     # do all patch work
     for section in sections:
@@ -143,7 +143,7 @@ def rpmpatch(configdir, srpm, changelog_user, verbose=False):
             if result == NotImplemented:
                 not_applicable.append(cfg_file[section]['patch'])
             elif verbose:
-                print '## ' + str(cfg_file[section]['method']) + ' patch ' + str(result[1]) + ' num:' + str(result[0]) + ' stripe:' + str(result[2])
+                print('## ' + str(cfg_file[section]['method']) + ' patch ' + str(result[1]) + ' num:' + str(result[0]) + ' stripe:' + str(result[2]))
 
     # do all source work
     for section in sections:
@@ -154,7 +154,7 @@ def rpmpatch(configdir, srpm, changelog_user, verbose=False):
             if result == NotImplemented:
                 not_applicable.append(cfg_file[section]['source'])
             elif verbose:
-                print '## processed source ' + result[1]
+                print('## processed source ' + result[1])
 
     if cfg_file['program']['package_config']:
         fake_source = {}
@@ -163,7 +163,7 @@ def rpmpatch(configdir, srpm, changelog_user, verbose=False):
         fake_source['changelog'] = 'Config file for automated patch script'
         sources(fake_source, 'program', version, specfile)
         if verbose:
-            print '## added config file'
+            print('## added config file')
 
     if not_applicable:
         if cfg_file['program']['package_unused']:
@@ -188,10 +188,10 @@ def rpmpatch(configdir, srpm, changelog_user, verbose=False):
             # done with this, clean it up
             shutil.rmtree(tempdir)
             if verbose:
-                print '## added un-used items'
+                print('## added un-used items')
 
     if verbose:
-        print '## building rpm'
+        print('## building rpm')
 
     defines_dict = {}
     for thing in cfg_file['define']:
@@ -229,7 +229,7 @@ def spec_patch(config, version, specfile):
     '''
         Apply a patch to the specfile
     '''
-    if config.has_key('on_version'):
+    if 'on_version' in config:
         if config['on_version'].startswith('['):
             config['on_version'] = eval(config['on_version'])
         else:
@@ -246,7 +246,7 @@ def run_re(config, version, specfile):
     '''
         Run the listed regex against the specfile
     '''
-    if config.has_key('on_version'):
+    if 'on_version' in config:
         if config['on_version'].startswith('['):
             config['on_version'] = eval(config['on_version'])
         else:
@@ -264,7 +264,7 @@ def patches(config, section, version, specfile):
     '''
         Add or remove the patch listed
     '''
-    if config.has_key('on_version'):
+    if 'on_version' in config:
         if config['on_version'].startswith('['):
             config['on_version'] = eval(config['on_version'])
         else:
@@ -307,7 +307,7 @@ def sources(config, section, version, specfile):
     '''
         Add a source to the specfile
     '''
-    if config.has_key('on_version'):
+    if 'on_version' in config:
         if config['on_version'].startswith('['):
             config['on_version'] = eval(config['on_version'])
         else:
@@ -320,14 +320,14 @@ def sources(config, section, version, specfile):
     method = config['method']
 
     if method.lower() == 'add':
-        if 'num' in config.keys():
+        if 'num' in list(config.keys()):
             num = config['num']
         else:
             num = None
         thisfile = config['source']
         return specfile.add_source(thisfile, num, changelog)
     if method.lower() == 'del':
-        if 'num' in config.keys():
+        if 'num' in list(config.keys()):
             num = config['num']
         else:
             num = None
@@ -352,5 +352,5 @@ def parsesrpms(configdir, srpms, changelog_user, verbose=False):
 
     for item in result:
         for element in item:
-            print "Wrote: " + element
+            print("Wrote: " + element)
 

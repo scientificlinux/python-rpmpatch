@@ -12,9 +12,9 @@ import optparse
 import rpm
 
 # make it easier to test this from the source archive
-#parent, bindir = os.path.split(os.path.dirname(os.path.abspath(sys.argv[0])))
-#if os.path.exists(os.path.join(parent, 'rpmpatch')):
-#    sys.path.insert(0, parent)
+parent, bindir = os.path.split(os.path.dirname(os.path.abspath(sys.argv[0])))
+if os.path.exists(os.path.join(parent, 'rpmpatch')):
+    sys.path.insert(0, parent)
 
 from helpers import parsesrpms
 

@@ -1,6 +1,6 @@
 # Python RPM AutoPatch
 
-This project was originaly developed by Scientific Linux Team
+This project was originaly developed by Scientific Linux Developers
 
 ## Overview 
 Basically this is a toolset for doing automated customization of a given rpm.
@@ -13,4 +13,5 @@ also provides instructions on how to build a configuration file to begin
 working with this toolset right away.
 
 ## Example
+
 
