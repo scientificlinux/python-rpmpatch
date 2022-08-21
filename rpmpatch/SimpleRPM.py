@@ -88,6 +88,18 @@ class SimpleRPM(object):
         return self.getFilename()
 
     @staticmethod
+    def __get_rpm_ts():
+        ts = rpm.TransactionSet()
+        # disable signature checks, we might not have the key or the file might be unsigned
+        # pre 4.15 RPM needs to use the old name of the bitmask
+        try:
+            vsflags = rpm.RPMVSF_MASK_NOSIGNATURES
+        except AttributeError:
+            vsflags = rpm._RPMVSF_NOSIGNATURES
+        ts.setVSFlags(vsflags)
+        return ts
+
+    @staticmethod
     def __temp_rpm(somefile):
         '''
            This creates a short lived SimpleRPM object
@@ -105,17 +117,7 @@ class SimpleRPM(object):
             return False
     @staticmethod
     def get_rpm_info(path_to_rpm):
-        ts = rpm.TransactionSet()
-        # disable signature checks, we might not have the key or the file might be unsigned
-        # pre 4.15 RPM needs to use the old name of the bitmask
-        try:
-            vsflags = rpm.RPMVSF_MASK_NOSIGNATURES
-        except AttributeError:
-            vsflags = rpm._RPMVSF_NOSIGNATURES
-        ts.setVSFlags(vsflags)
-
-        with open(path_to_rpm) as rpmfile:
-            rpmhdr = ts.hdrFromFdno(rpmfile)
+        ts = SimpleRPM.__get_rpm_ts()
 
         name = rpmhdr[rpm.RPMTAG_NAME]  # .decode('ascii')
         version = rpmhdr[rpm.RPMTAG_VERSION]  # .decode('ascii')
@@ -351,7 +353,7 @@ class SimpleRPM(object):
         '''
         try:
             _fd = os.open(self.getFullPath(), os.O_RDONLY)
-            _ts = rpm.TransactionSet()
+            _ts = SimpleRPM.__get_rpm_ts()
             hdr = _ts.hdrFromFdno(_fd)
             os.close(_fd)
             return hdr
