@@ -75,8 +75,8 @@ class SpecFile(object):
 
         # need a real shell for some things
         # can't use in memory buffers.... they aren't large enough
-        tmpstdout = tempfile.NamedTemporaryFile(bufsize=0)
-        tmpstderr = tempfile.NamedTemporaryFile(bufsize=0)
+        tmpstdout = tempfile.NamedTemporaryFile(buffering=1)
+        tmpstderr = tempfile.NamedTemporaryFile(buffering=1)
 
         code = subprocess.call(buildsrc, stdout=tmpstdout, stderr=tmpstderr)
         tmpstderr.seek(0)
@@ -85,30 +85,30 @@ class SpecFile(object):
         if code != 0:
             print(tmpstderr.read())
             raise RuntimeError(' '.join(buildsrc))
-
-        matches = re.findall(r'Wrote:\s(\S+.src.rpm)\n', tmpstdout.read())
-
+        # DEBUG TODO REMOVE ME
+        print(tmpstdout.name)
+        os.sleep(300)
+        # REMOVE ME TODO
+        matches = re.findall(r'Wrote:\s(\S+.src.rpm)\n', str(tmpstdout.read()))
         tmpstdout.close()
         tmpstderr.close()
 
         rpms = [matches[0]]
 
         if compileit:
-            if build_arches == None:
+            if build_arches is None:
                 build_arches = [None]
             for thisarch in build_arches:
                 buildbinary = ['rpmbuild', '-bb']
 
-                if thisarch != None:
+                if thisarch is not None:
                     buildbinary.append('--target=' + thisarch)
 
                 buildbinary = buildbinary + defines
                 buildbinary.append(self.specfile)
 
-                # need a real shell for some things
-                # can't use in memory buffers.... they aren't large enough
-                tmpstdout = tempfile.NamedTemporaryFile(bufsize=0)
-                tmpstderr = tempfile.NamedTemporaryFile(bufsize=0)
+                tmpstdout = tempfile.NamedTemporaryFile()
+                tmpstderr = tempfile.NamedTemporaryFile()
 
                 code = subprocess.call(buildbinary, shell=True,
                                        stderr=tmpstderr, stdout=tmpstdout)

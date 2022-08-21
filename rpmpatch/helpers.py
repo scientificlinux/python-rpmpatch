@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-#pylint: disable=line-too-long
+# pylint: disable=line-too-long
+
 '''
     This is a simple script where it all comes together.
     You can make you own if you want but this one is rather simple
@@ -21,6 +22,7 @@ if os.path.exists(os.path.join(PARENT, 'rpmpatch')):
 
 from rpmpatch.SourcePackage import SourcePackage
 from rpmpatch.SpecFile import SpecFile
+
 
 def rpmpatch(configdir, srpm, changelog_user, verbose=False):
     '''
@@ -58,7 +60,7 @@ def rpmpatch(configdir, srpm, changelog_user, verbose=False):
         cfg_file['define'] = []
 
     # need changelog user or else
-    if changelog_user == None:
+    if changelog_user is None:
         if 'changelog_user' in cfg_file['program']:
             changelog_user = cfg_file['program']['changelog_user']
         else:
@@ -118,7 +120,7 @@ def rpmpatch(configdir, srpm, changelog_user, verbose=False):
             if not cfg_file[section]['diff'].startswith('/'):
                 cfg_file[section]['diff'] = configdir + '/' + cfg_file[section]['diff']
             if 'package_config' not in cfg_file[section]:
-                cfg_file[section]['package_config'] =  cfg_file['program']['package_config']
+                cfg_file[section]['package_config'] = cfg_file['program']['package_config']
             result = spec_patch(cfg_file[section], version, specfile)
             if result == NotImplemented:
                 not_applicable.append(cfg_file[section]['diff'])
@@ -201,6 +203,7 @@ def rpmpatch(configdir, srpm, changelog_user, verbose=False):
                            cfg_file['program']['build_targets'])
     return built
 
+
 def find_dist_tag(config, srpm, specfile):
     '''
         Look at a given spec file and try to find its dist tag
@@ -219,11 +222,12 @@ def find_dist_tag(config, srpm, specfile):
 
     for item in difflist:
         if item[:1] == '-':
-            disttag = disttag +  item[2:]
+            disttag = disttag + item[2:]
 
     disttag = re.sub(config['autodist']['autodist_re_match'], config['autodist']['autodist_re_replace'], disttag)
 
     return disttag
+
 
 def spec_patch(config, version, specfile):
     '''
@@ -242,6 +246,7 @@ def spec_patch(config, version, specfile):
     patch = config['diff']
     return specfile.apply_specfile_diff(patch, changelog, config['package_config'])
 
+
 def run_re(config, version, specfile):
     '''
         Run the listed regex against the specfile
@@ -259,6 +264,7 @@ def run_re(config, version, specfile):
     find = config['match']
     replace = config['replace']
     return specfile.run_re(find, replace, changelog)
+
 
 def patches(config, section, version, specfile):
     '''
@@ -303,6 +309,7 @@ def patches(config, section, version, specfile):
 
         return specfile.rm_patch(name, num, changelog)
 
+
 def sources(config, section, version, specfile):
     '''
         Add a source to the specfile
@@ -337,10 +344,9 @@ def sources(config, section, version, specfile):
         mysrc = config['source']
         specsrc = config['specsourcename']
         return specfile.replace_source(specsrc, mysrc, changelog)
-
-
     else:
         raise RuntimeError('Bad ' + section + ' in config file')
+
 
 def parsesrpms(configdir, srpms, changelog_user, verbose=False):
     '''
@@ -353,4 +359,3 @@ def parsesrpms(configdir, srpms, changelog_user, verbose=False):
     for item in result:
         for element in item:
             print("Wrote: " + element)
-
