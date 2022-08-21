@@ -217,11 +217,13 @@ def rpmpatch(configdir, srpm, changelog_user, verbose=False, keep_dist=False):
         dist_last_char = -1
         index = 0
         while index < len(release):
-            # stop counting after dot when already asinged
-            if dist_first_char > 0 and release[index] == '.':
+            # stop counting after dot (skip_chars changed inside loop) when
+            # dist_first_char is assigned
+            if dist_first_char > 0 and release[index] in skip_chars:
                 break
 
             if release[index] not in skip_chars:
+                skip_chars = set('.')  # this is stupid
                 if dist_first_char < 0:
                     dist_first_char = index
                     dist_last_char = index
@@ -230,7 +232,8 @@ def rpmpatch(configdir, srpm, changelog_user, verbose=False, keep_dist=False):
 
             index += 1
         dist = release[dist_first_char:dist_last_char+1]
-        print(f"found dist {dist}")
+        print(f"Found dist {dist} - keeping it")
+        defines_dict['%dist'] = f'.{dist}'
 
     built = specfile.build(defines_dict, cfg_file['program']['compile'],
                            cfg_file['program']['build_targets'])
