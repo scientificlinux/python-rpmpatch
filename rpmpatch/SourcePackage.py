@@ -8,6 +8,7 @@ import subprocess
 
 from SimpleRPM import SimpleRPM
 
+
 class SourcePackage(SimpleRPM):
     '''
         Takes in all the tools from SimpleRPM and limits its scope to
@@ -56,5 +57,5 @@ class SourcePackage(SimpleRPM):
             if os.path.isfile(self.topdir + '/SPECS/' + fileinrpm):
                 self.specfile = self.topdir + '/SPECS/' + fileinrpm
 
-        if self.specfile == None:
+        if self.specfile is None:
             raise RuntimeError("Missing spec in " + self.getFilename())

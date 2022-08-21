@@ -254,6 +254,8 @@ changelog = I changed everything to L for some reason
 
     PARSER.add_option('--verbose', default=False, action='store_true',
                       help='''Print action information''')
+    PARSER.add_option('--keep_dist', default=False, action='store_true',
+                      help='''keep dist like el7_9 or el9_0. Works only for `el` disttag''')
 
     (OPTIONS, ARGS) = PARSER.parse_args()
 
@@ -274,4 +276,4 @@ changelog = I changed everything to L for some reason
         if not os.path.isfile(THEFILE):
             raise IOError('No such file: ' + THEFILE)
 
-    parsesrpms(os.path.expanduser(OPTIONS.configdir), ARGS, OPTIONS.changelog_user, OPTIONS.verbose)
+    parsesrpms(os.path.expanduser(OPTIONS.configdir), ARGS, OPTIONS.changelog_user, OPTIONS.verbose, OPTIONS.keep_dist)

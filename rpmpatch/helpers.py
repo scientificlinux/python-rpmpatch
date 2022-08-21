@@ -24,13 +24,14 @@ from rpmpatch.SourcePackage import SourcePackage
 from rpmpatch.SpecFile import SpecFile
 
 
-def rpmpatch(configdir, srpm, changelog_user, verbose=False):
+def rpmpatch(configdir, srpm, changelog_user, verbose=False, keep_dist=False):
     '''
         Read the config, perform the steps, build the package
     '''
     package = SourcePackage(srpm)
     name = package.packageName()
     version = package.packageVersion()
+    release = package.packageRelease()
     cfgfilename = configdir + '/' + name + '.ini'
     if not os.path.isfile(cfgfilename):
         otherspot = configdir + '/' + name + '/' + name + '.ini'
@@ -199,6 +200,38 @@ def rpmpatch(configdir, srpm, changelog_user, verbose=False):
     for thing in cfg_file['define']:
         defines_dict[thing[0]] = thing[1]
 
+    if keep_dist:
+        # the dist tag must be extracted from the release. The problem is that it might look like this:
+        # - %release.%dist
+        # - %release.%dist.%subrelease
+        # - %dist.%release
+        # so the smart thing is going through release, mark the index of first
+        # not numerical and not dot character then find next dot or end of the
+        # string.
+        # this method still won't work if %release is something like:
+        # git_123123123.el8_6. So it's not very clever
+
+        # using set to make it a little bit faster than array
+        skip_chars = set(['.']+[str(x) for x in range(0, 9)])
+        dist_first_char = -1
+        dist_last_char = -1
+        index = 0
+        while index < len(release):
+            # stop counting after dot when already asinged
+            if dist_first_char > 0 and release[index] == '.':
+                break
+
+            if release[index] not in skip_chars:
+                if dist_first_char < 0:
+                    dist_first_char = index
+                    dist_last_char = index
+                else:
+                    dist_last_char += 1
+
+            index += 1
+        dist = release[dist_first_char:dist_last_char+1]
+        print(f"found dist {dist}")
+
     built = specfile.build(defines_dict, cfg_file['program']['compile'],
                            cfg_file['program']['build_targets'])
     return built
@@ -348,13 +381,13 @@ def sources(config, section, version, specfile):
         raise RuntimeError('Bad ' + section + ' in config file')
 
 
-def parsesrpms(configdir, srpms, changelog_user, verbose=False):
+def parsesrpms(configdir, srpms, changelog_user, verbose=False, keep_dist=False):
     '''
         Loop through the rpms, possible use of threading here later
     '''
     result = []
     for srpm in srpms:
-        result.append(rpmpatch(configdir, srpm, changelog_user, verbose))
+        result.append(rpmpatch(configdir, srpm, changelog_user, verbose, keep_dist))
 
     for item in result:
         for element in item:
