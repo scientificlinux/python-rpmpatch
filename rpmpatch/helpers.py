@@ -201,16 +201,30 @@ def rpmpatch(configdir, srpm, changelog_user, verbose=False, keep_dist=False):
         defines_dict[thing[0]] = thing[1]
 
     if keep_dist:
-        # the dist tag must be extracted from the release. The problem is that it might look like this:
-        # - %release.%dist
-        # - %release.%dist.%subrelease
-        # - %dist.%release
-        # so the smart thing is going through release, mark the index of first
-        # not numerical and not dot character then find next dot or end of the
-        # string.
-        # this method still won't work if %release is something like:
-        # git_123123123.el8_6. So it's not very clever
+        dist = __guess_srpm_dist(release) 
+        defines_dict['%dist'] = f'.{dist}'
 
+    built = specfile.build(defines_dict, cfg_file['program']['compile'],
+                           cfg_file['program']['build_targets'])
+    return built
+
+
+def __guess_srpm_dist(release):
+    """
+    the dist tag must be extracted from the release. The problem is that it might look like this:
+    - %release.%dist
+    - %release.%dist.%subrelease
+    - %dist.%release
+    so the easiest thing is going through release, mark the index of first
+    not numerical and not dot character then find next dot or end of the
+    string.
+    This method still won't work if %release is something like:
+    git_123123123.el8_6. So it's not very clever
+    
+    There is a separate way to find distag for modular package that is based on
+    the `module+` string.
+    """
+    if 'module+' not in release:
         # using set to make it a little bit faster than array
         skip_chars = set(['.']+[str(x) for x in range(0, 9)])
         dist_first_char = -1
@@ -233,11 +247,25 @@ def rpmpatch(configdir, srpm, changelog_user, verbose=False, keep_dist=False):
             index += 1
         dist = release[dist_first_char:dist_last_char+1]
         print(f"Found dist {dist} - keeping it")
-        defines_dict['%dist'] = f'.{dist}'
-
-    built = specfile.build(defines_dict, cfg_file['program']['compile'],
-                           cfg_file['program']['build_targets'])
-    return built
+    else:  # f*** modularity, silent majority, raised by system(d) - builderwise
+        disttag_index = release.find('module+')
+        # if there is disttag with .module, we can add our own modified packages
+        # that might not have it
+        if disttag_index >= 0:
+            src_rpm_disttag = release[disttag_index:]
+            # WELL no so fast! Sometimes there are packages that have modular
+            # disttag and also additional release number! That's why we also
+            # check if there is nothing after "extra"(additional release) dot
+            last_dot_index = src_rpm_disttag.rfind('.')
+            src_rpm_orig_length = len(src_rpm_disttag)
+            # Number 5 is arbitrary but worked for all EuroLinux builds
+            print(f"{last_dot_index}, {src_rpm_orig_length}")
+            if src_rpm_orig_length - 5 < last_dot_index:
+                print("I'm here")
+                dist = src_rpm_disttag[:last_dot_index]
+            else:
+                dist = src_rpm_disttag
+    return dist
 
 
 def find_dist_tag(config, srpm, specfile):

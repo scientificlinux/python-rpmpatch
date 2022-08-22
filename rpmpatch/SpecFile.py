@@ -404,7 +404,7 @@ class SpecFile(object):
             namematch = re.findall(r'(\s*[nN]ame:\s+.+)', self.text)
             source_entry = namematch[0]
 
-        self.text = self.text.replace(source_entry, source_entry + entry)
+        self.text = self.text.replace(source_entry, source_entry + entry + "\n")
         self.text = self.text.replace(entry + '\n%endif\n', '\n%endif\n' + entry)
 
         self.changelog['Added Source: ' + sourcename] = changelog

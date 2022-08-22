@@ -21,7 +21,6 @@ from helpers import parsesrpms
 
 if __name__ == "__main__":
 
-
     # don't fix epilog white space, useful for manual formating control
     optparse.OptionParser.format_epilog = lambda self, formatter: self.epilog
 
@@ -191,6 +190,18 @@ on_version = [ '1.2' ]
 # you must have a changelog entry
 changelog = Not this thingy
 
+[source3]
+# example for replacing a source
+method = replace
+
+# your sources
+source = distro.ini
+
+# spec file sources
+specsourcename = distribution.ini
+
+changelog = Replace distribuiton.ini with distro.ini
+
 # ----------------------------------------------------
 # The 'spec' sections are for applying patches to the specfile itself
 # when you've added a new source or want to remove a source file
@@ -261,6 +272,10 @@ changelog = I changed everything to L for some reason
 
     if OPTIONS.sampleconfig:
         print(SAMPLE_CONFIG)
+        sys.exit(1)
+
+    if len(ARGS) < 1:
+        PARSER.print_help()
         sys.exit(1)
 
     if not os.path.isdir(os.path.expanduser(OPTIONS.configdir)):
