@@ -266,7 +266,7 @@ changelog = I changed everything to L for some reason
     PARSER.add_option('--verbose', default=False, action='store_true',
                       help='''Print action information''')
     PARSER.add_option('--keep_dist', default=False, action='store_true',
-                      help='''keep dist like el7_9 or el9_0. Works only for `el` disttag''')
+                      help='''keep dist like el7_9 or el9_0. Might not work!''')
 
     (OPTIONS, ARGS) = PARSER.parse_args()
 
