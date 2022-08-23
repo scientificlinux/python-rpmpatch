@@ -107,7 +107,7 @@ def rpmpatch(configdir, srpm, changelog_user, verbose=False, keep_dist=False):
     if 'autodist_re_replace' not in cfg_file['autodist']:
         cfg_file['autodist']['autodist_re_replace'] = None
 
-    # get into sorted order
+    # get into sorted order, we need list
     sections = list(cfg_file.keys())
     sections.sort()
 
@@ -201,7 +201,7 @@ def rpmpatch(configdir, srpm, changelog_user, verbose=False, keep_dist=False):
         defines_dict[thing[0]] = thing[1]
 
     if keep_dist:
-        dist = __guess_srpm_dist(release) 
+        dist = __guess_srpm_dist(release)
         defines_dict['%dist'] = f'.{dist}'
 
     built = specfile.build(defines_dict, cfg_file['program']['compile'],
@@ -225,7 +225,7 @@ def __guess_srpm_dist(release):
     """
     if 'module+' not in release:
         # using set to make it a little bit faster than array
-        skip_chars = set(['.']+[str(x) for x in range(0, 9)])
+        skip_chars = set(['.', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'])
         dist_first_char = -1
         dist_last_char = -1
         index = 0
@@ -386,14 +386,14 @@ def sources(config, section, version, specfile):
     method = config['method']
 
     if method.lower() == 'add':
-        if 'num' in list(config.keys()):
+        if 'num' in config.keys():
             num = config['num']
         else:
             num = None
         thisfile = config['source']
         return specfile.add_source(thisfile, num, changelog)
     if method.lower() == 'del':
-        if 'num' in list(config.keys()):
+        if 'num' in config.keys():
             num = config['num']
         else:
             num = None
