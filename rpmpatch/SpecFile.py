@@ -9,6 +9,7 @@ import shutil
 import subprocess
 import tempfile
 
+
 class SpecFile(object):
     '''
         Provides the manipulation functions of the automatic patch tools
@@ -41,7 +42,7 @@ class SpecFile(object):
         '''
             Make sure to save changes
         '''
-        if self.text != None:
+        if self.text is not None:
             self.save()
 
     def build(self, define_dict=None, compileit=False, build_arches=None):
@@ -75,40 +76,37 @@ class SpecFile(object):
 
         # need a real shell for some things
         # can't use in memory buffers.... they aren't large enough
-        tmpstdout = tempfile.NamedTemporaryFile(bufsize=0)
-        tmpstderr = tempfile.NamedTemporaryFile(bufsize=0)
+        tmpstdout = tempfile.NamedTemporaryFile(buffering=-1)
+        tmpstderr = tempfile.NamedTemporaryFile(buffering=-1)
 
         code = subprocess.call(buildsrc, stdout=tmpstdout, stderr=tmpstderr)
         tmpstderr.seek(0)
         tmpstdout.seek(0)
 
         if code != 0:
-            print tmpstderr.read()
+            print(tmpstderr.read().decode('utf-8'))
             raise RuntimeError(' '.join(buildsrc))
 
-        matches = re.findall(r'Wrote:\s(\S+.src.rpm)\n', tmpstdout.read())
-
+        matches = re.findall(r'Wrote:\s(\S+.src.rpm)\n', tmpstdout.read().decode('utf-8'))
         tmpstdout.close()
         tmpstderr.close()
 
         rpms = [matches[0]]
 
         if compileit:
-            if build_arches == None:
+            if build_arches is None:
                 build_arches = [None]
             for thisarch in build_arches:
                 buildbinary = ['rpmbuild', '-bb']
 
-                if thisarch != None:
+                if thisarch is not None:
                     buildbinary.append('--target=' + thisarch)
 
                 buildbinary = buildbinary + defines
                 buildbinary.append(self.specfile)
 
-                # need a real shell for some things
-                # can't use in memory buffers.... they aren't large enough
-                tmpstdout = tempfile.NamedTemporaryFile(bufsize=0)
-                tmpstderr = tempfile.NamedTemporaryFile(bufsize=0)
+                tmpstdout = tempfile.NamedTemporaryFile()
+                tmpstderr = tempfile.NamedTemporaryFile()
 
                 code = subprocess.call(buildbinary, shell=True,
                                        stderr=tmpstderr, stdout=tmpstdout)
@@ -117,10 +115,10 @@ class SpecFile(object):
                 tmpstdout.seek(0)
 
                 if code != 0:
-                    print tmpstderr.read()
+                    print(tmpstderr.read().decode('utf-8'))
                     raise RuntimeError(' '.join(buildbinary))
 
-                matches = re.findall(r'Wrote:\s(\S+.rpm)\n', tmpstdout.read())
+                matches = re.findall(r'Wrote:\s(\S+.rpm)\n', tmpstdout.read().decode('utf-8'))
 
                 rpms = rpms + matches
 
@@ -155,10 +153,10 @@ class SpecFile(object):
         tmpstdout.seek(0)
 
         if code != 0:
-            print tmpstderr.read()
+            print(tmpstderr.read().decode('utf-8'))
             raise RuntimeError(' '.join(query_string))
 
-        matches = re.findall(r'(\S+.src.rpm)\n', tmpstdout.read())
+        matches = re.findall(r'(\S+.src.rpm)\n', tmpstdout.read().decode('utf-8'))
 
         tmpstdout.close()
         tmpstderr.close()
@@ -234,7 +232,7 @@ class SpecFile(object):
         patch_re = r'^\s*([pP]atch(\d*):\s+(\S+))'
         matches = re.findall(patch_re, not_changelog, re.M)
         # if we are making a number up
-        if patchnum == None:
+        if patchnum is None:
             # if there are no existing patches we start at 0, else at 1
             if not matches:
                 patchnum_list = [0]
@@ -301,9 +299,9 @@ class SpecFile(object):
             You must provide a changelog reason for this modification.
         '''
 
-        if patchname != None:
+        if patchname is not None:
             patch_re = r'(\s*[pP]atch(\d+):\s+(' + patchname + ')\n)'
-        elif patchnum != None:
+        elif patchnum is not None:
             patch_re = r'(\s*[pP]atch(' + str(patchnum) + r'):\s+(\S+?)\s+?)'
         else:
             raise ValueError('You must specify something I can use here')
@@ -347,9 +345,9 @@ class SpecFile(object):
 
             You must provide a changelog reason for this modification.
         '''
-        if sourcename != None:
+        if sourcename is not None:
             source_re = r'(\s*[sS]ource(\d+):\s+(' + sourcename + ')\n)'
-        elif sourcenum != None:
+        elif sourcenum is not None:
             source_re = r'(\s*[sS]ource(' + str(sourcenum) + r'):\s+(\S+?)\s+?)'
         else:
             raise ValueError('You must specify something I can use here')
@@ -378,7 +376,7 @@ class SpecFile(object):
         source_re = r'([sS]ource(\d*):\s+(\S+))'
         matches = re.findall(source_re, not_changelog)
         # if we are making a number up
-        if sourcenum == None:
+        if sourcenum is None:
             # if there are no existing sources we start at 0, else at 1
             if not matches:
                 sourcenum_list = [0]
@@ -406,7 +404,7 @@ class SpecFile(object):
             namematch = re.findall(r'(\s*[nN]ame:\s+.+)', self.text)
             source_entry = namematch[0]
 
-        self.text = self.text.replace(source_entry, source_entry + entry)
+        self.text = self.text.replace(source_entry, source_entry + entry + "\n")
         self.text = self.text.replace(entry + '\n%endif\n', '\n%endif\n' + entry)
 
         self.changelog['Added Source: ' + sourcename] = changelog
@@ -417,7 +415,7 @@ class SpecFile(object):
         '''
             Record the changes in the changelog
         '''
-        if self.changelog_done == True:
+        if self.changelog_done is True:
             return
         now = datetime.datetime.now().strftime('%a %b %d %Y ')
         changelog_text = '%changelog\n* ' + now + self.changelog_user + '\n'
