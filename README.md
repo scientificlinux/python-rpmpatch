@@ -27,6 +27,8 @@ sudo dnf install -y python3-virtualenv
 ./create_and_fix_venv.sh
 ```
 
+**Note: this step is optional**.
+
 ## Usage
 
 Download the package that you want to fix
@@ -34,13 +36,14 @@ Download the package that you want to fix
 wget https://your.mirror.example.net/sources/9/x86_64/appstream/Packages/f/firefox-91.9.1-1.el9_0.src.rpm -P srpms
 ```
 
-Activate virtualenv
+Optionally activate virtualenv
 ```
 . venv/bin/activate
 ```
 
 To patch, you need a configuration directory. **Example configuration**
-directory hierarchy for EuroLinux 9 and Firefox is placed inside `configs`.
+directory is placed inside `configs` directory, that has sample hierarchy for
+EuroLinux 6 and 9.
 
 ```bash
 ./rpmpatch/patchsrpm.py --keep_dist --config=configs/el9/ srpms/firefox-91.9.1-1.el9_0.src.rpm
@@ -56,7 +59,7 @@ without it it will produce srpm with distag used by your distribution/system.
 
 ## Getting help
 
-- Invoking `./rpmpatch/patchsrpm.py` without argument will provide options and examples. 
+- Invoking `./rpmpatch/patchsrpm.py` without argument will provide options and examples.
 - Invoking `./rpmpatch/patchsrpm.py --sampleconfig` prints sample config that
   has all necessary information to create the autopatching process
 - In case of a bug/problem or if You need help GitHub issues are very welcome :)!
@@ -65,8 +68,11 @@ without it it will produce srpm with distag used by your distribution/system.
 
 There are very simple smoke tests. **Note that smoke tests use
 `rpmdev-wipetree` command during executions**. The tests are bats
-based. Installing bats on Enterprise Linux 8/9:
-```
+based. 
+
+Installing bats on Enterprise Linux 8/9:
+
+```bash
 sudo dnf install -y epel-release
 sudo dnf install -y bats
 ```

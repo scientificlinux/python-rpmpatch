@@ -74,10 +74,8 @@ class SpecFile(object):
 
         buildsrc.append(self.specfile)
 
-        # need a real shell for some things
-        # can't use in memory buffers.... they aren't large enough
-        tmpstdout = tempfile.NamedTemporaryFile(buffering=-1)
-        tmpstderr = tempfile.NamedTemporaryFile(buffering=-1)
+        tmpstdout = tempfile.NamedTemporaryFile()
+        tmpstderr = tempfile.NamedTemporaryFile()
 
         code = subprocess.call(buildsrc, stdout=tmpstdout, stderr=tmpstderr)
         tmpstderr.seek(0)
