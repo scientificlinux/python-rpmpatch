@@ -43,7 +43,7 @@ Optionally activate virtualenv
 
 To patch, you need a configuration directory. **Example configuration**
 directory is placed inside `configs` directory, that has sample hierarchy for
-EuroLinux 6 and 9.
+Enterprise Linux 6 and 9.
 
 ```bash
 ./rpmpatch/patchsrpm.py --keep_dist --config=configs/el9/ srpms/firefox-91.9.1-1.el9_0.src.rpm
@@ -68,7 +68,7 @@ without it it will produce srpm with distag used by your distribution/system.
 
 There are very simple smoke tests. **Note that smoke tests use
 `rpmdev-wipetree` command during executions**. The tests are bats
-based. 
+based.
 
 Installing bats on Enterprise Linux 8/9:
 
@@ -81,9 +81,3 @@ Running tests
 ```
 bats smoke-tests.bats
 ```
-
-## History
-
-This project was originally developed by Scientific Linux Developers, which we
-would like to thanks. We migrated it to Python 3 and add developed it a little
-further.

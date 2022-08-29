@@ -246,7 +246,7 @@ def __guess_srpm_dist(release):
             index += 1
         dist = release[dist_first_char:dist_last_char+1]
         print(f"Found dist {dist} - keeping it")
-    else:  # f*** modularity, silent majority, raised by system(d) - builderwise
+    else:
         disttag_index = release.find('module+')
         if disttag_index >= 0:
             src_rpm_disttag = release[disttag_index:]
