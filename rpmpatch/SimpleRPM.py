@@ -115,9 +115,12 @@ class SimpleRPM(object):
             return True
         else:
             return False
+
     @staticmethod
     def get_rpm_info(path_to_rpm):
         ts = SimpleRPM.__get_rpm_ts()
+        with open(path_to_rpm) as rpmfile:
+            rpmhdr = ts.hdrFromFdno(rpmfile)
 
         name = rpmhdr[rpm.RPMTAG_NAME]  # .decode('ascii')
         version = rpmhdr[rpm.RPMTAG_VERSION]  # .decode('ascii')
@@ -130,8 +133,8 @@ class SimpleRPM(object):
 
     @staticmethod
     def get_rpm_evr(path_to_rpm):
-        n,e,v,r,a = SimpleRPM.get_rpm_info(path_to_rpm)
-        return e,v,r
+        n, e, v, r, a = SimpleRPM.get_rpm_info(path_to_rpm)
+        return e, v, r
 
     def __vercmp(self, other):
         '''Stolen outright from rpmdev-vercmp'''
