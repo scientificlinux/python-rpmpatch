@@ -1,11 +1,12 @@
 #!/usr/bin/env python
-#pylint: disable=line-too-long
+# pylint: disable=line-too-long
+
 '''
     This is a simple script where it all comes together.
     You can make you own if you want but this one is rather simple
 '''
 
-import ConfigParser
+import configparser
 import difflib
 import os
 import re
@@ -22,13 +23,15 @@ if os.path.exists(os.path.join(PARENT, 'rpmpatch')):
 from rpmpatch.SourcePackage import SourcePackage
 from rpmpatch.SpecFile import SpecFile
 
-def rpmpatch(configdir, srpm, changelog_user, verbose=False):
+
+def rpmpatch(configdir, srpm, changelog_user, verbose=False, keep_dist=False):
     '''
         Read the config, perform the steps, build the package
     '''
     package = SourcePackage(srpm)
     name = package.packageName()
     version = package.packageVersion()
+    release = package.packageRelease()
     cfgfilename = configdir + '/' + name + '.ini'
     if not os.path.isfile(cfgfilename):
         otherspot = configdir + '/' + name + '/' + name + '.ini'
@@ -37,7 +40,7 @@ def rpmpatch(configdir, srpm, changelog_user, verbose=False):
         else:
             cfgfilename = configdir + '/' + name + '/' + name + '.ini'
 
-    config = ConfigParser.SafeConfigParser()
+    config = configparser.SafeConfigParser()
     config.read(cfgfilename)
 
     configdir = os.path.abspath(os.path.dirname(cfgfilename))
@@ -50,23 +53,23 @@ def rpmpatch(configdir, srpm, changelog_user, verbose=False):
             cfg_file[section.lower()][entry] = value
 
     # empty is ok, but we do need these
-    if not cfg_file.has_key('program'):
+    if 'program' not in cfg_file:
         cfg_file['program'] = {}
-    if not cfg_file.has_key('autodist'):
+    if 'autodist' not in cfg_file:
         cfg_file['autodist'] = {}
-    if not cfg_file.has_key('define'):
+    if 'define' not in cfg_file:
         cfg_file['define'] = []
 
     # need changelog user or else
-    if changelog_user == None:
-        if cfg_file['program'].has_key('changelog_user'):
+    if changelog_user is None:
+        if 'changelog_user' in cfg_file['program']:
             changelog_user = cfg_file['program']['changelog_user']
         else:
-            print >> sys.stderr, '\nMissing changelog user, see --help or config file'
+            print('\nMissing changelog user, see --help or config file', file=sys.stderr)
             sys.exit(1)
 
     if verbose:
-        print '# working on ' + srpm
+        print('# working on ' + srpm)
 
     # don't bother installing until we have a config file
     package.install()
@@ -104,8 +107,8 @@ def rpmpatch(configdir, srpm, changelog_user, verbose=False):
     if 'autodist_re_replace' not in cfg_file['autodist']:
         cfg_file['autodist']['autodist_re_replace'] = None
 
-    # get into sorted order
-    sections = cfg_file.keys()
+    # get into sorted order, we need list
+    sections = list(cfg_file.keys())
     sections.sort()
 
     if cfg_file['autodist']['enable_autodist']:
@@ -118,12 +121,12 @@ def rpmpatch(configdir, srpm, changelog_user, verbose=False):
             if not cfg_file[section]['diff'].startswith('/'):
                 cfg_file[section]['diff'] = configdir + '/' + cfg_file[section]['diff']
             if 'package_config' not in cfg_file[section]:
-                cfg_file[section]['package_config'] =  cfg_file['program']['package_config']
+                cfg_file[section]['package_config'] = cfg_file['program']['package_config']
             result = spec_patch(cfg_file[section], version, specfile)
             if result == NotImplemented:
                 not_applicable.append(cfg_file[section]['diff'])
             elif verbose:
-                print '## applied ' + cfg_file[section]['diff']
+                print('## applied ' + cfg_file[section]['diff'])
 
     # do all regex work
     for section in sections:
@@ -132,7 +135,7 @@ def rpmpatch(configdir, srpm, changelog_user, verbose=False):
             if result == NotImplemented:
                 pass
             elif verbose:
-                print '## ran regex ' + cfg_file[section]['match'] + '=>' + cfg_file[section]['replace']
+                print('## ran regex ' + cfg_file[section]['match'] + '=>' + cfg_file[section]['replace'])
 
     # do all patch work
     for section in sections:
@@ -143,7 +146,7 @@ def rpmpatch(configdir, srpm, changelog_user, verbose=False):
             if result == NotImplemented:
                 not_applicable.append(cfg_file[section]['patch'])
             elif verbose:
-                print '## ' + str(cfg_file[section]['method']) + ' patch ' + str(result[1]) + ' num:' + str(result[0]) + ' stripe:' + str(result[2])
+                print('## ' + str(cfg_file[section]['method']) + ' patch ' + str(result[1]) + ' num:' + str(result[0]) + ' stripe:' + str(result[2]))
 
     # do all source work
     for section in sections:
@@ -154,7 +157,7 @@ def rpmpatch(configdir, srpm, changelog_user, verbose=False):
             if result == NotImplemented:
                 not_applicable.append(cfg_file[section]['source'])
             elif verbose:
-                print '## processed source ' + result[1]
+                print('## processed source ' + result[1])
 
     if cfg_file['program']['package_config']:
         fake_source = {}
@@ -163,7 +166,7 @@ def rpmpatch(configdir, srpm, changelog_user, verbose=False):
         fake_source['changelog'] = 'Config file for automated patch script'
         sources(fake_source, 'program', version, specfile)
         if verbose:
-            print '## added config file'
+            print('## added config file')
 
     if not_applicable:
         if cfg_file['program']['package_unused']:
@@ -188,18 +191,77 @@ def rpmpatch(configdir, srpm, changelog_user, verbose=False):
             # done with this, clean it up
             shutil.rmtree(tempdir)
             if verbose:
-                print '## added un-used items'
+                print('## added un-used items')
 
     if verbose:
-        print '## building rpm'
+        print('## building rpm')
 
     defines_dict = {}
     for thing in cfg_file['define']:
         defines_dict[thing[0]] = thing[1]
 
+    if keep_dist:
+        dist = __guess_srpm_dist(release)
+        defines_dict['%dist'] = f'.{dist}'
+
     built = specfile.build(defines_dict, cfg_file['program']['compile'],
                            cfg_file['program']['build_targets'])
     return built
+
+
+def __guess_srpm_dist(release):
+    """
+    the dist tag must be extracted from the release. The problem is that it might look like this:
+    - %release.%dist
+    - %release.%dist.%subrelease
+    - %dist.%release
+    so the easiest thing is going through release, mark the index of first
+    not numerical and not dot character then find next dot or end of the
+    string.
+    This method still won't work if %release is something like:
+    git_123123123.el8_6. So it's not very clever
+    There is a separate way to find distag for modular package that is based on
+    the `module+` string.
+    """
+    if 'module+' not in release:
+        # using set to make it a little bit faster than array
+        skip_chars = set(['.', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'])
+        dist_first_char = -1
+        dist_last_char = -1
+        index = 0
+        while index < len(release):
+            # stop counting after dot (skip_chars changed inside loop) when
+            # dist_first_char is assigned
+            if dist_first_char > 0 and release[index] in skip_chars:
+                break
+
+            if release[index] not in skip_chars:
+                skip_chars = set('.')  # this is stupid
+                if dist_first_char < 0:
+                    dist_first_char = index
+                    dist_last_char = index
+                else:
+                    dist_last_char += 1
+
+            index += 1
+        dist = release[dist_first_char:dist_last_char+1]
+        print(f"Found dist {dist} - keeping it")
+    else:
+        disttag_index = release.find('module+')
+        if disttag_index >= 0:
+            src_rpm_disttag = release[disttag_index:]
+            # WELL no so fast! Sometimes there are packages that have modular
+            # disttag and also additional release number! That's why we also
+            # check if there is nothing after "extra"(additional release) dot
+            last_dot_index = src_rpm_disttag.rfind('.')
+            src_rpm_orig_length = len(src_rpm_disttag)
+            # Number 5 is arbitrary but worked for all EuroLinux 8 builds
+            if src_rpm_orig_length - 5 < last_dot_index:
+                dist = src_rpm_disttag[:last_dot_index]
+            else:
+                dist = src_rpm_disttag
+    return dist
+
 
 def find_dist_tag(config, srpm, specfile):
     '''
@@ -219,17 +281,18 @@ def find_dist_tag(config, srpm, specfile):
 
     for item in difflist:
         if item[:1] == '-':
-            disttag = disttag +  item[2:]
+            disttag = disttag + item[2:]
 
     disttag = re.sub(config['autodist']['autodist_re_match'], config['autodist']['autodist_re_replace'], disttag)
 
     return disttag
 
+
 def spec_patch(config, version, specfile):
     '''
         Apply a patch to the specfile
     '''
-    if config.has_key('on_version'):
+    if 'on_version' in config:
         if config['on_version'].startswith('['):
             config['on_version'] = eval(config['on_version'])
         else:
@@ -242,11 +305,12 @@ def spec_patch(config, version, specfile):
     patch = config['diff']
     return specfile.apply_specfile_diff(patch, changelog, config['package_config'])
 
+
 def run_re(config, version, specfile):
     '''
         Run the listed regex against the specfile
     '''
-    if config.has_key('on_version'):
+    if 'on_version' in config:
         if config['on_version'].startswith('['):
             config['on_version'] = eval(config['on_version'])
         else:
@@ -260,11 +324,12 @@ def run_re(config, version, specfile):
     replace = config['replace']
     return specfile.run_re(find, replace, changelog)
 
+
 def patches(config, section, version, specfile):
     '''
         Add or remove the patch listed
     '''
-    if config.has_key('on_version'):
+    if 'on_version' in config:
         if config['on_version'].startswith('['):
             config['on_version'] = eval(config['on_version'])
         else:
@@ -303,11 +368,12 @@ def patches(config, section, version, specfile):
 
         return specfile.rm_patch(name, num, changelog)
 
+
 def sources(config, section, version, specfile):
     '''
         Add a source to the specfile
     '''
-    if config.has_key('on_version'):
+    if 'on_version' in config:
         if config['on_version'].startswith('['):
             config['on_version'] = eval(config['on_version'])
         else:
@@ -337,20 +403,18 @@ def sources(config, section, version, specfile):
         mysrc = config['source']
         specsrc = config['specsourcename']
         return specfile.replace_source(specsrc, mysrc, changelog)
-
-
     else:
         raise RuntimeError('Bad ' + section + ' in config file')
 
-def parsesrpms(configdir, srpms, changelog_user, verbose=False):
+
+def parsesrpms(configdir, srpms, changelog_user, verbose=False, keep_dist=False):
     '''
         Loop through the rpms, possible use of threading here later
     '''
     result = []
     for srpm in srpms:
-        result.append(rpmpatch(configdir, srpm, changelog_user, verbose))
+        result.append(rpmpatch(configdir, srpm, changelog_user, verbose, keep_dist))
 
     for item in result:
         for element in item:
-            print "Wrote: " + element
-
+            print("Wrote: " + element)

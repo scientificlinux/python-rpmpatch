@@ -1,0 +1,38 @@
+--- SOURCES/index.html	2006-07-28 09:10:15.000000000 -0500
++++ SOURCES/index.html	2011-10-24 12:09:13.000000000 -0500
+@@ -2,7 +2,7 @@
+ 
+ <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+ 	<head>
+-		<title>Test Page for the Apache HTTP Server on Red Hat Enterprise Linux</title>
++		<title>Test Page for the Apache HTTP Server on Scientific Linux</title>
+ 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+ 		<style type="text/css">
+ 			/*<![CDATA[*/
+@@ -27,7 +27,7 @@
+ 				text-align: center;
+ 				margin: 0;
+ 				padding: 0.6em 2em 0.4em;
+-				background-color: #900;
++				background-color: #009;
+ 				color: #fff;
+ 				font-weight: normal;
+ 				font-size: 1.75em;
+@@ -85,7 +85,7 @@
+ 	</head>
+ 
+ 	<body>
+-		<h1>Red Hat Enterprise Linux <strong>Test Page</strong></h1>
++		<h1>Scientific Linux <strong>Test Page</strong></h1>
+ 
+ 		<div class="content">
+ 			<div class="content-middle">
+@@ -103,7 +103,7 @@
+ 
+ 					<p>For example, if you experienced problems while visiting www.example.com, you should send e-mail to "webmaster@example.com".</p>
+ 
+-					<p>For information on Red Hat Enterprise Linux, please visit the <a href="http://www.redhat.com/">Red Hat, Inc. website</a>. The documentation for Red Hat Enterprise Linux is <a href="http://www.redhat.com/docs/manuals/enterprise/">available on the Red Hat, Inc. website</a>.</p>
++					<p>For information on Scientific Linux, please visit the <a href="http://www.scientificlinux.org/">Scientific Linux website</a>.</p>
+ 					<hr />
+ 				</div>
+ 

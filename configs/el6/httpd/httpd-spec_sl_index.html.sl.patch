@@ -1,0 +1,10 @@
+--- httpd.spec	2011-12-07 11:00:05.922706810 -0600
++++ httpd.spec	2011-12-07 11:05:36.584324477 -0600
+@@ -327,6 +327,7 @@ echo %{mmn} > $RPM_BUILD_ROOT%{_included
+ 
+ # docroot
+ mkdir $RPM_BUILD_ROOT%{contentdir}/html
++(cd $RPM_SOURCE_DIR; patch -p1 < httpd-sl_index.html.sl.patch)
+ install -m 644 -p $RPM_SOURCE_DIR/index.html \
+         $RPM_BUILD_ROOT%{contentdir}/error/noindex.html
+ 
