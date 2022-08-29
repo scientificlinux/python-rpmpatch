@@ -281,6 +281,11 @@ class SpecFile(object):
                 matches = re.findall(setup_re, self.text)
                 if matches:
                     patch_entry = None
+        # if %autopatch we should not add patch lines
+        setup_re = '(%autopatch.*)'
+        matches = re.findall(setup_re, not_changelog)
+        if matches:
+            patch_entry = None
 
         if patch_entry:
             self.text = self.text.replace(patch_entry, patch_entry + entry)
